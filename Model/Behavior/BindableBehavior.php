@@ -39,7 +39,7 @@ class BindableBehavior extends ModelBehavior {
         );
 
         // Default settings
-        $this->settings[$model->alias] = Set::merge($defaults, $settings);
+        $this->settings[$model->alias] = Hash::merge($defaults, $settings);
         $this->runtime[$model->alias] = $defaultRuntime;
 
         // Set runtimes
@@ -55,7 +55,7 @@ class BindableBehavior extends ModelBehavior {
      */
     public function setSettings(Model $model, $settings){
         $before = $this->getSettings($model);
-        $this->setUp($model, Set::merge($before, $settings));
+        $this->setUp($model, Hash::merge($before, $settings));
     }
 
     /**
@@ -100,7 +100,7 @@ class BindableBehavior extends ModelBehavior {
         if (empty($model->bindFields)) {
             return $queryData;
         }
-        $this->bindFields = Set::combine($model->bindFields, '/field' , '/');
+        $this->bindFields = Hash::combine($model->bindFields, '{n}.field' , '{n}');
         if (empty($queryData['fields'])) {
             return $queryData;
         }
@@ -139,7 +139,7 @@ class BindableBehavior extends ModelBehavior {
         $modelName = $model->alias;
         $model->bindedData = $model->data;
         foreach ($model->data[$modelName] as $fieldName => $value) {
-            if (!in_array($fieldName, Set::extract('/field', $model->bindFields))) {
+            if (!in_array($fieldName, Hash::extract($model->bindFields, '{n}.field'))) {
                 continue;
             }
 
@@ -216,8 +216,8 @@ class BindableBehavior extends ModelBehavior {
             $model_id = $model->bindedData[$modelName][$this->runtime[$model->alias]['primaryKey']];
         }
 
-        $bindFields = Set::combine($model->bindFields, '/field' , '/');
-        $fields = Set::extract('/field', $model->bindFields);
+        $bindFields = Hash::combine($model->bindFields, '{n}.field' , '{n}');
+        $fields = Hash::extract($model->bindFields, '{n}.field');
         $deleteFields = array();
 
         foreach ($fields as $field) {
@@ -267,7 +267,7 @@ class BindableBehavior extends ModelBehavior {
 
             $baseDir = empty($bindFields[$fieldName]['filePath']) ? $this->settings[$model->alias]['filePath'] : $bindFields[$fieldName]['filePath'];
             if ($baseDir) {
-                $filePath = $baseDir . $model->transferTo(array_diff_key(array('model_id' => $model_id) + $value, Set::normalize(array('tmp_bind_path'))));
+                $filePath = $baseDir . $model->transferTo(array_diff_key(array('model_id' => $model_id) + $value, Hash::normalize(array('tmp_bind_path'))));
             } else {
                 $filePath = false;
             }
@@ -322,7 +322,7 @@ class BindableBehavior extends ModelBehavior {
                     }
                     $urlPrefix = !empty($bindFields[$fieldName]['urlPrefix']) ? $bindFields[$fieldName]['urlPrefix'] : Configure::read('Filebinder.S3.urlPrefix');
                     $responce = $s3->create_object($bucket,
-                        $urlPrefix . $model->transferTo(array_diff_key(array('model_id' => $model_id) + $value, Set::normalize(array('tmp_bind_path')))),
+                        $urlPrefix . $model->transferTo(array_diff_key(array('model_id' => $model_id) + $value, Hash::normalize(array('tmp_bind_path')))),
                         array(
                             'fileUpload' => $tmpFile,
                             'acl' => $acl,
@@ -415,7 +415,7 @@ class BindableBehavior extends ModelBehavior {
             ));
 
         if ($result) {
-            $bindFields = Set::combine($model->bindFields, '/field' , '/');
+            $bindFields = Hash::combine($model->bindFields, '{n}.field' , '{n}');
             foreach ($bindFields as $fieldName => $value) {
                 if (!isset($deleteFields[$fieldName])) {
                     continue;
@@ -747,7 +747,7 @@ class BindableBehavior extends ModelBehavior {
         $data = $this->runtime[$model->alias]['bindedModel']->find('all', $query);
 
         if ($data) {
-            $data = Set::combine(
+            $data = Hash::combine(
                 $data,
                 '{n}.' . $this->runtime[$model->alias]['bindedModel']->alias . '.field_name',
                 '{n}.' .  $this->runtime[$model->alias]['bindedModel']->alias
@@ -824,8 +824,8 @@ class BindableBehavior extends ModelBehavior {
             $tmpData = $data;
         }
 
-        $bindFields = empty($this->bindFields) ? Set::combine($model->bindFields, '/field' , '/') : $this->bindFields;
-        $model_ids = Set::extract('/' . $modelName . '/' . $this->runtime[$model->alias]['primaryKey'], $tmpData);
+        $bindFields = empty($this->bindFields) ? Hash::combine($model->bindFields, '{n}.field' , '{n}') : $this->bindFields;
+        $model_ids = Hash::extract($tmpData, '{n}.' . $modelName . '.' . $this->runtime[$model->alias]['primaryKey']);
 
         if (!$model_ids) {
             return $data;
@@ -863,7 +863,7 @@ class BindableBehavior extends ModelBehavior {
         }
 
         $binds = $this->runtime[$model->alias]['bindedModel']->find('all', $query);
-        $binds = Set::combine($binds, array('%1$s.%2$s' , '/' . $this->settings[$model->alias]['model'] . '/model_id', '/' . $this->settings[$model->alias]['model'] . '/field_name'), '/' . $this->settings[$model->alias]['model']);
+        $binds = Hash::combine($binds, array('%1$s.%2$s' , '{n}.' . $this->settings[$model->alias]['model'] . '.model_id', '{n}.' . $this->settings[$model->alias]['model'] . '.field_name'), '{n}');
         foreach ($tmpData as $key => $value) {
             if (empty($tmpData[$key][$modelName])) {
                 continue;
@@ -874,7 +874,7 @@ class BindableBehavior extends ModelBehavior {
                     $bind = $binds[$model_id . '.' . $fieldName][$this->settings[$model->alias]['model']];
                     $baseDir = empty($bindFields[$fieldName]['filePath']) ? $this->settings[$model->alias]['filePath'] : $bindFields[$fieldName]['filePath'];
                     if ($baseDir) {
-                        $filePath = $baseDir . $model->transferTo(array_diff_key($bind, Set::normalize(array('file_object'))));
+                        $filePath = $baseDir . $model->transferTo(array_diff_key($bind, Hash::normalize(array('file_object'))));
                     } else {
                         $filePath = false;
                     }
@@ -961,7 +961,7 @@ class BindableBehavior extends ModelBehavior {
                             }
 
                             $responce = $s3->get_object($bucket,
-                                $urlPrefix . $model->transferTo(array_diff_key($bind, Set::normalize(array('file_object')))),
+                                $urlPrefix . $model->transferTo(array_diff_key($bind, Hash::normalize(array('file_object')))),
                                 array(
                                     'fileDownload' => $filePath,
                                 ));
@@ -1015,7 +1015,7 @@ class BindableBehavior extends ModelBehavior {
                             $urlPrefix = !empty($bindFields[$fieldName]['urlPrefix']) ? $bindFields[$fieldName]['urlPrefix'] : Configure::read('Filebinder.S3.urlPrefix');
                             $tmpFilePath = '/tmp/' . sha1(uniqid('', true));
                             $responce = $s3->get_object($bucket,
-                                $urlPrefix . $model->transferTo(array_diff_key($bind, Set::normalize(array('file_object')))),
+                                $urlPrefix . $model->transferTo(array_diff_key($bind, Hash::normalize(array('file_object')))),
                                 array(
                                     'fileDownload' => $tmpFilePath,
                                 ));
@@ -1038,13 +1038,13 @@ class BindableBehavior extends ModelBehavior {
             $data[$model->alias] = $tmpData[0][$model->alias];
 
         } else if (isset($data[$model->alias][0][$model->primaryKey])) {
-            $data[$model->alias] = Set::extract($tmpData, '{n}.' . $model->alias);
+            $data[$model->alias] = Hash::extract($tmpData, '{n}.' . $model->alias);
 
         } else if (isset($data[$model->primaryKey])) {
             $data = $tmpData[0][$model->alias];
 
         } else if (isset($data[0][$model->primaryKey])) {
-            $data = Set::extract($tmpData, '{n}.' . $model->alias);
+            $data = Hash::extract($tmpData, '{n}.' . $model->alias);
 
         } else {
             $data = $tmpData;

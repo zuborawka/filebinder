@@ -18,16 +18,17 @@ class BindableBehavior extends ModelBehavior {
      * @param $settings
      */
     public function setUp(Model $model, $settings = array()){
+	    $WWW_ROOT = str_replace(DS, '/', WWW_ROOT);
         $defaults = array(
             'model' => 'Attachment', // attachment model
-            'filePath' => WWW_ROOT . 'img' . DS, // default attached local file path. if 'false', not save local
+            'filePath' => $WWW_ROOT . 'img' . '/', // default attached local file path. if 'false', not save local
             // 'dbStorage' => true, // backward compatible
             'storage' => BindableBehavior::STORAGE_DB, // file entity save table
             'beforeAttach' => null, // hook function
             'afterAttach' => null, // hook function
             'withObject' => false, // find attachment with file object
             'exchangeFile' => true, // save new file after deleting old file
-            'restoreFromStorage' => true, // if local file not exists, restore from strage
+            'restoreFromStorage' => true, // if local file not exists, restore from storage
             'dirMode' => 0755,
             'fileMode' => 0644,
         );
@@ -392,7 +393,7 @@ class BindableBehavior extends ModelBehavior {
      * @see BindableBehavior::afterFind()
      */
     public function transferTo(Model $model, $data) {
-        return $model->alias . DS . $data['model_id'] . DS . $data['field_name'] . DS . $data['file_name'];
+        return $model->alias . '/' . $data['model_id'] . '/' . $data['field_name'] . '/' . $data['file_name'];
     }
 
     /**

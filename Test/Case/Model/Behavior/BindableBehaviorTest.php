@@ -48,6 +48,7 @@ class BindableTestCase extends CakeTestCase{
      */
     public function testFind(){
         $filePath = TMP . 'tests' . DS;
+	    $filePath = str_replace(DS, '/', $filePath);
         $this->FilebinderPost->bindFields = array(
             array(
                 'field' => 'logo',
@@ -61,15 +62,15 @@ class BindableTestCase extends CakeTestCase{
         $result = $this->FilebinderPost->find('first', $query);
 
         $expected = array(
-            'id' => 1,
+            'id' => '1',
             'title' => 'Title',
             'body' => 'Filebinder.Bindable Test',
             'created' => '2011-08-23 17:44:58',
             'modified' => '2011-08-23 12:05:02',
             'logo' => array(
-                'id' => 100,
+                'id' => '100',
                 'model' => 'FilebinderPost',
-                'model_id' => 1,
+                'model_id' => '1',
                 'field_name' => 'logo',
                 'file_name' => 'logo.png',
                 'file_content_type' => 'image/png',

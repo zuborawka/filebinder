@@ -3,6 +3,10 @@ App::uses('View', 'View');
 App::uses('SessionHelper', 'View/Helper');
 App::uses('LabelHelper', 'Filebinder.View/Helper');
 
+/**
+ * Class LabelHelperTest
+ * @property $Label LabelHelper
+ */
 class LabelHelperTest extends CakeTestCase {
 
     public function setUp() {
@@ -28,7 +32,8 @@ class LabelHelperTest extends CakeTestCase {
      * @return
      */
     public function test_makeSrc(){
-        $file = array('file_path' => WWW_ROOT . 'files/FilebinderPost/1/logo/logo.png',
+	    $WWW_ROOT = str_replace(DS, '/', WWW_ROOT);
+        $file = array('file_path' => $WWW_ROOT . 'files/FilebinderPost/1/logo/logo.png',
                       'model' => 'FilebinderPost',
                       'model_id' => '1',
                       'field_name' => 'logo',

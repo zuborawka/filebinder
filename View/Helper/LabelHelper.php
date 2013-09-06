@@ -71,8 +71,9 @@ class LabelHelper extends AppHelper {
             return false;
         }
 
-        if (preg_match('#' . WWW_ROOT . '#', $filePath)) {
-            $src = preg_replace('#' . WWW_ROOT . '#', DS, $filePath);
+        $WWW_ROOT = str_replace(DS, '/', WWW_ROOT);
+	    if (preg_match('#' . $WWW_ROOT . '#', $filePath)) {
+            $src = preg_replace('#' . $WWW_ROOT . '#', '/', $filePath);
             return $src;
         }
 
